@@ -1,0 +1,12 @@
+build/
+*.o
+*.a
+*.so
+*.exe
+*.bin
+*.tmp
+*.log
+Thumbs.db
+.vscode/
+.idea/
+*.pdf
