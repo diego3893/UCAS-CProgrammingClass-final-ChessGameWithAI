@@ -16,6 +16,10 @@ int main(){
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
 
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    WORD whiteBgBlackText = BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+    SetConsoleTextAttribute(hOut, whiteBgBlackText);
+
     showWelcomeMsg();
     do{
         //初始化
@@ -45,16 +49,31 @@ int main(){
                             showBoard(&board);
                             printf("落子坐标已有棋子，请重新输入！\n");
                         }
+                        if(drop_flag == -2){
+                            showBoard(&board);
+                            printf("黑子第一手应在天元H8，请重新输入！\n");
+                        }
                     }
                 }
                 showInputPrompt(current_player);
                 getInput(input, INPUT_MAX_LEN);
                 trans_flag = transInput2Coord(input, &row, &col); //坐标转换
+                // printf("%d,%d\n", row, col);
+                // system("pause");
                 if(!trans_flag){
                     continue;
                 }
                 //转换成功则落子
-                drop_flag = dropPiece(&board, row, col, piece_color);
+                //判断第一手是否在天元
+                if(board.pieceTotal == 0){
+                    if(row!=8 || col!=8){
+                        drop_flag = -2;
+                    }else{
+                        drop_flag = dropPiece(&board, row, col, piece_color);
+                    }
+                }else{
+                    drop_flag = dropPiece(&board, row, col, piece_color);
+                }
             }while(drop_flag != 1); //直到落子成功才退出输入环节
             showBoard(&board);
             game_status = judgeStatus(&board, row, col, current_player);
