@@ -27,11 +27,12 @@ void checkChessShape(const Board* board, int row, int col, int chess_shape_cnt[]
     for(int i=0; i<CHESS_SHAPE_CNT; ++i){
         chess_shape_cnt[i] = 0;
     }
-    //showBoard(board);
-    chess_shape_cnt[LIVE_THREE] = checkLiveThree(board, row, col);
-    chess_shape_cnt[LIVE_FOUR] = checkLiveFour(board, row, col);
-    chess_shape_cnt[BREAKTHROUGH_FOUR] = checkBreakthroughFour(board, row, col) - 2*chess_shape_cnt[LIVE_FOUR];
-    chess_shape_cnt[LONG_CHAIN] = checkLongChain(board, row, col);
+    // showBoard(board);
+    chess_shape_cnt[LIVE_TWO] = checkLiveTwo(board, row, col, current_player);
+    chess_shape_cnt[LIVE_THREE] = checkLiveThree(board, row, col, current_player);
+    chess_shape_cnt[LIVE_FOUR] = checkLiveFour(board, row, col, current_player);
+    chess_shape_cnt[BREAKTHROUGH_FOUR] = checkBreakthroughFour(board, row, col, current_player) - 2*chess_shape_cnt[LIVE_FOUR];
+    chess_shape_cnt[LONG_CHAIN] = checkLongChain(board, row, col, current_player);
     chess_shape_cnt[FIVE_IN_ROW] = checkFiveInRow(board, row, col, current_player);
     return;
 }
@@ -71,8 +72,8 @@ int checkFiveInRow(const Board* board, int row, int col, Player current_player){
     return cnt;
 }
 
-int checkLongChain(const Board* board, int row, int col){
-    Piece color = BLACK;
+int checkLongChain(const Board* board, int row, int col, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
     Pair dirs[] = {DELTA_RIGHT, DELTA_DOWN, DELTA_UPRIGHT, DELTA_DOWNRIGHT};
     int cnt = 0;
     for(int i=0; i<4; ++i){
@@ -100,8 +101,8 @@ int checkLongChain(const Board* board, int row, int col){
     return cnt;
 }
 
-int checkLiveThree(const Board* board, int row, int col){
-    Piece color = BLACK;
+int checkLiveThree(const Board* board, int row, int col, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
     Piece p;
     Pair dirs[] = {DELTA_RIGHT, DELTA_DOWN, DELTA_UPRIGHT, DELTA_DOWNRIGHT};
     int cnt = 0;
@@ -121,9 +122,13 @@ int checkLiveThree(const Board* board, int row, int col){
                 y += dy;
             }else if(p == BLANK){
                 blank_ends++;
-                if(checkPieceInRowWithDir(board, x, y, 4, dirs[i])){
-                    if(!isForbiddenPosition(board, x, y)){
-                        //空白处落子能成活四并且不是禁手点位，则为一个活三
+                if(checkPieceInRowWithDir(board, x, y, 4, dirs[i], current_player)){
+                    if(color == BLACK){
+                        if(!isForbiddenPosition(board, x, y)){
+                            //空白处落子能成活四并且不是禁手点位，则为一个活三
+                            cnt_dir++;
+                        }
+                    }else{
                         cnt_dir++;
                     }
                 }
@@ -142,8 +147,13 @@ int checkLiveThree(const Board* board, int row, int col){
                 y -= dy;
             }else if(p == BLANK){
                 blank_ends++;
-                if(checkPieceInRowWithDir(board, x, y, 4, dirs[i])){
-                    if(!isForbiddenPosition(board, x, y)){
+                if(checkPieceInRowWithDir(board, x, y, 4, dirs[i], current_player)){
+                    if(color == BLACK){
+                        if(!isForbiddenPosition(board, x, y)){
+                            //空白处落子能成活四并且不是禁手点位，则为一个活三
+                            cnt_dir++;
+                        }
+                    }else{
                         cnt_dir++;
                     }
                 }
@@ -161,8 +171,8 @@ int checkLiveThree(const Board* board, int row, int col){
     return cnt;
 }
 
-int checkLiveFour(const Board* board, int row, int col){
-    Piece color = BLACK;
+int checkLiveFour(const Board* board, int row, int col, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
     Pair dirs[] = {DELTA_RIGHT, DELTA_DOWN, DELTA_UPRIGHT, DELTA_DOWNRIGHT};
     int cnt = 0;
     for(int i=0; i<4; ++i){
@@ -178,7 +188,9 @@ int checkLiveFour(const Board* board, int row, int col){
             y += dy;
         }
         if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
-            blank_ends++;
+            if(checkPieceInRowWithDir(board, x, y, 5, dirs[i], current_player)){
+                blank_ends++;
+            }
         }
         x = row-dx;
         y = col-dy;
@@ -188,7 +200,9 @@ int checkLiveFour(const Board* board, int row, int col){
             y -= dy;
         }
         if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
-            blank_ends++;
+            if(checkPieceInRowWithDir(board, x, y, 5, dirs[i], current_player)){
+                blank_ends++;
+            }
         }
         if(same==4 && blank_ends==2){
             cnt++;
@@ -197,13 +211,14 @@ int checkLiveFour(const Board* board, int row, int col){
     return cnt;
 }
 
-int checkBreakthroughFour(const Board* board, int row, int col){
-    Piece color = BLACK;
-    Piece opp_color = WHITE;
+int checkBreakthroughFour(const Board* board, int row, int col, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
+    Piece opp_color = (current_player==PLAYER_BLACK)?WHITE:BLACK;
     Piece p;
     Pair dirs[] = {DELTA_RIGHT, DELTA_DOWN, DELTA_UPRIGHT, DELTA_DOWNRIGHT};
     int cnt = 0;
     for(int i=0; i<4; ++i){
+        int cnt_dir = 0;
         int dx = dirs[i].x;
         int dy = dirs[i].y;
         int same = 1; 
@@ -221,8 +236,8 @@ int checkBreakthroughFour(const Board* board, int row, int col){
                 blocks++;
                 break;
             }else{
-                if(checkPieceInRowWithDir(board, x, y, 5, dirs[i])){
-                    cnt++;
+                if(checkPieceInRowWithDir(board, x, y, 5, dirs[i], current_player)){
+                    cnt_dir++;
                     blanks++;
                 }
                 break;
@@ -240,12 +255,15 @@ int checkBreakthroughFour(const Board* board, int row, int col){
                 blocks++;
                 break;
             }else{
-                if(checkPieceInRowWithDir(board, x, y, 5, dirs[i])){
-                    cnt++;
+                if(checkPieceInRowWithDir(board, x, y, 5, dirs[i], current_player)){
+                    cnt_dir++;
                     blanks++;
                 }
                 break;
             }
+        }
+        if(same <= 4){
+            cnt += cnt_dir;
         }
     }
     //一个活四会被统计成两个冲四，减去！
@@ -268,11 +286,14 @@ bool isForbiddenMove(const int chess_shape_cnt[]){
     return false;
 }
 
-bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair dir){
-    Piece color = BLACK;
+bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair dir, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
     int dx = dir.x;
     int dy = dir.y;
     if(num == 4){ //能否形成活四
+        Board temp_board;
+        memcpy(&temp_board, board, sizeof(Board));
+        dropPiece(&temp_board, row, col, color);
         int same = 1; 
         int blank_ends = 0;
         int x = row+dx;
@@ -283,7 +304,9 @@ bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair 
             y += dy;
         }
         if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
-            blank_ends++;
+            if(checkPieceInRowWithDir(&temp_board, x, y, 5, dir, current_player)){
+                blank_ends++;
+            }
         }
         x = row-dx;
         y = col-dy;
@@ -293,7 +316,9 @@ bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair 
             y -= dy;
         }
         if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
-            blank_ends++;
+            if(checkPieceInRowWithDir(&temp_board, x, y, 5, dir, current_player)){
+                blank_ends++;
+            }
         }
         if(same==4 && blank_ends==2){
             return true;
@@ -315,7 +340,47 @@ bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair 
             x -= dx;
             y -= dy;
         }
-        if(length == 5){
+        if(color == BLACK){
+            if(length == 5){
+                return true;
+            }
+        }else if(color == WHITE){
+            if(length >= 5){
+                return true;
+            }
+        }
+        return false;
+    }else if(num == 3){
+        Board temp_board;
+        memcpy(&temp_board, board, sizeof(Board));
+        dropPiece(&temp_board, row, col, color);
+        int same = 1; 
+        int blank_ends = 0;
+        int x = row+dx;
+        int y = col+dy;
+        while(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==color){
+            same++;
+            x += dx;
+            y += dy;
+        }
+        if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
+            if(checkPieceInRowWithDir(&temp_board, x, y, 4, dir, current_player)){
+                blank_ends++;
+            }
+        }
+        x = row-dx;
+        y = col-dy;
+        while(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==color){
+            same++;
+            x -= dx;
+            y -= dy;
+        }
+        if(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE && getPiece(board, x, y)==BLANK){
+            if(checkPieceInRowWithDir(&temp_board, x, y, 4, dir, current_player)){
+                blank_ends++;
+            }
+        }
+        if(same==3 && blank_ends==2){
             return true;
         }
         return false;
@@ -338,4 +403,76 @@ bool isForbiddenPosition(const Board* board, int row, int col){
     int chess_shape_cnt[CHESS_SHAPE_CNT] = {0};
     checkChessShape(&temp_board, row, col, chess_shape_cnt, PLAYER_BLACK); //递归判断
     return isForbiddenMove(chess_shape_cnt);
+}
+
+int checkLiveTwo(const Board* board, int row, int col, Player current_player){
+    Piece color = (current_player==PLAYER_BLACK)?BLACK:WHITE;
+    Piece p;
+    Pair dirs[] = {DELTA_RIGHT, DELTA_DOWN, DELTA_UPRIGHT, DELTA_DOWNRIGHT};
+    int cnt = 0;
+    for(int i=0; i<4; ++i){
+        int cnt_dir = 0;
+        int dx = dirs[i].x;
+        int dy = dirs[i].y;
+        int same = 1;
+        int blank_ends = 0;
+        int x = row+dx;
+        int y = col+dy;
+        while(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE){
+            p = getPiece(board, x, y);
+            if(p == color){
+                same++;
+                x += dx;
+                y += dy;
+            }else if(p == BLANK){
+                blank_ends++;
+                if(checkPieceInRowWithDir(board, x, y, 3, dirs[i], current_player)){
+                    // if(color == BLACK){
+                    //     if(!isForbiddenPosition(board, x, y)){
+                    //         //空白处落子能成活三并且不是禁手点位，则为一个活二
+                    //         cnt_dir++;
+                    //     }
+                    // }else{
+                    //     cnt_dir++;
+                    // }
+                    cnt_dir++;
+                }
+                break;
+            }else{
+                break;
+            }
+        }
+        x = row-dx;
+        y = col-dy;
+        while(x>=1 && x<=BOARD_SIZE && y>=1 && y<=BOARD_SIZE){
+            p = getPiece(board, x, y);
+            if(p == color){
+                same++;
+                x -= dx;
+                y -= dy;
+            }else if(p == BLANK){
+                blank_ends++;
+                if(checkPieceInRowWithDir(board, x, y, 3, dirs[i], current_player)){
+                    // if(color == BLACK){
+                    //     if(!isForbiddenPosition(board, x, y)){
+                    //         //空白处落子能成活三并且不是禁手点位，则为一个活二
+                    //         cnt_dir++;
+                    //     }
+                    // }else{
+                    //     cnt_dir++;
+                    // }
+                    cnt_dir++;
+                }
+                break;
+            }else{
+                break;
+            }
+        }
+        //_XX_的棋型会多统计一次，减去
+        if(same==2 && blank_ends==2 && cnt_dir==2){
+            cnt_dir--;
+        }
+        cnt += cnt_dir;
+    }
+    return cnt;
 }

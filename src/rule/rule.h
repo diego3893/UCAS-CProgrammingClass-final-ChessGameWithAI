@@ -28,9 +28,10 @@ typedef struct{
  * 
  */
 typedef enum{
+    LIVE_TWO,
     LIVE_THREE,
-    LIVE_FOUR,
     BREAKTHROUGH_FOUR,
+    LIVE_FOUR,
     FIVE_IN_ROW,
     LONG_CHAIN,
     CHESS_SHAPE_CNT
@@ -73,9 +74,10 @@ void checkChessShape(const Board* board, int row, int col, int chess_shape_cnt[]
  * @param board 棋盘
  * @param row 棋子行坐标
  * @param col 棋子列坐标
+ * @param current_player 当前玩家
  * @return int 活三个数
  */
-int checkLiveThree(const Board* board, int row, int col);
+int checkLiveThree(const Board* board, int row, int col, Player current_player);
 
 /**
  * @brief 统计活四个数
@@ -83,9 +85,10 @@ int checkLiveThree(const Board* board, int row, int col);
  * @param board 棋盘
  * @param row 棋子行坐标
  * @param col 棋子列坐标
+ * @param current_player 当前玩家
  * @return int 活四个数
  */
-int checkLiveFour(const Board* board, int row, int col);
+int checkLiveFour(const Board* board, int row, int col, Player current_player);
 
 /**
  * @brief 统计冲四个数
@@ -93,9 +96,10 @@ int checkLiveFour(const Board* board, int row, int col);
  * @param board 棋盘
  * @param row 棋子行坐标
  * @param col 棋子列坐标
+ * @param current_player 当前玩家
  * @return int 冲四个数
  */
-int checkBreakthroughFour(const Board* board, int row, int col);
+int checkBreakthroughFour(const Board* board, int row, int col, Player current_player);
 
 /**
  * @brief 统计长连个数
@@ -103,9 +107,10 @@ int checkBreakthroughFour(const Board* board, int row, int col);
  * @param board 棋盘
  * @param row 棋子行坐标
  * @param col 棋子列坐标
+ * @param current_player 当前玩家
  * @return int 长连个数
  */
-int checkLongChain(const Board* board, int row, int col);
+int checkLongChain(const Board* board, int row, int col, Player current_player);
 
 /**
  * @brief 统计五连个数
@@ -128,17 +133,18 @@ int checkFiveInRow(const Board* board, int row, int col, Player current_player);
 bool isForbiddenMove(const int chess_shape_cnt[]);
 
 /**
- * @brief 检查某个特定方向上连成的棋型，判断是否为活四或五连
+ * @brief 检查某个特定方向上连成的棋型，判断是否为活三、活四或五连
  * 
  * @param board 棋盘
  * @param row 行
  * @param col 列
  * @param num 相连棋子数
  * @param dir 方向
+ * @param current_player 当前玩家
  * @return true 是
  * @return false 否
  */
-bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair dir);
+bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair dir, Player current_player);
 
 /**
  * @brief 模拟落子，判断空白位置是否为禁手点位
@@ -150,4 +156,15 @@ bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair 
  * @return false 该点位不是禁手点位
  */
 bool isForbiddenPosition(const Board* board, int row, int col);
+
+/**
+ * @brief 统计活二个数
+ * 
+ * @param board 棋盘
+ * @param row 棋子行坐标
+ * @param col 棋子列坐标
+ * @param current_player 当前玩家
+ * @return int 活二个数
+ */
+int checkLiveTwo(const Board* board, int row, int col, Player current_player);
 #endif 
