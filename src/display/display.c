@@ -90,7 +90,7 @@ void showWelcomeMsg(){
     printf("  2. 黑方触发禁手时，直接判负，白方获胜\n\n");
 
     printf("======================== GL & HF ========================\n");
-    system("pause");
+    // system("pause");
     return;
 }
 
