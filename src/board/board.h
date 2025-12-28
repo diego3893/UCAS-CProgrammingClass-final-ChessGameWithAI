@@ -41,6 +41,12 @@ typedef struct{
     int pieceTotal;
 }Board;
 
+typedef enum{
+    P2P,
+    P2AI_PLAYER_BLACK,
+    P2AI_PLAYER_WHITE
+}GameMode;
+
 /**
  * @brief 棋盘初始化
  * 
