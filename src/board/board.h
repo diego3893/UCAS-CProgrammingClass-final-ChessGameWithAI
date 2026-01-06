@@ -36,6 +36,7 @@ typedef enum{
  */
 typedef struct{
     Piece pieceColor[BOARD_SIZE+1][BOARD_SIZE+1];
+    int possibleMoves[BOARD_SIZE+1][BOARD_SIZE+1];
     int last_row;
     int last_col;
     int pieceTotal;
