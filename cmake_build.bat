@@ -1,7 +1,7 @@
 @echo off
 
 set "CMAKE_GENERATOR=MinGW Makefiles"
-set "PROJECT_NAME=P2PChessGame"
+set "PROJECT_NAME=ChessGame"
 set "TEST_NAME=test_rule"
 set "MAKE_CMD=mingw32-make"
 

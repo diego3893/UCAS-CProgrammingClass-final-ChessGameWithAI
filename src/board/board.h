@@ -20,6 +20,8 @@
 #define INPUT_MAX_LEN 3 //输入最大限制
 #define INPUT_MIN_LEN 2 //输入最大限制
 
+#define NEIGHBORHOOD_SIZE 1
+
 /**
  * @brief 棋子，枚举类型，标识当前棋子的状态是黑/白/空白
  * 

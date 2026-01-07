@@ -23,7 +23,7 @@ set(MAIN_SOURCES
     src/ai/evaluate.c
 )
 
-add_executable(P2PChessGame ${MAIN_SOURCES})
+add_executable(ChessGame ${MAIN_SOURCES})
 
 
 add_executable(test_rule test/test_rule.c src/board/board.c src/display/display.c src/rule/rule.c)

@@ -8,7 +8,7 @@ Piece piece_color = WHITE;
 Player current_player = PLAYER_WHITE;
 GameStatus game_status = PLAYING;
 GameMode game_mode;
-int mode_code;
+char mode_code;
 char restart = 'n';
 char input[4];
 int row, col;
@@ -27,16 +27,17 @@ int main(){
         system("cls");
         do{
             showWelcomeMsg();
+            //calcPositionWeight();
             printf("请选择游戏模式（0为P2P，1为P2AI且玩家为黑子，2为P2AI且玩家为白子）：");
-            scanf("%d", &mode_code);
+            scanf("%c", &mode_code);
             getchar();
-            if(mode_code<0 || mode_code>2){
+            if(!('0'<=mode_code && mode_code<='2')){
                 printf("输入有误，请重新输入游戏模式\n");
                 system("pause");
                 system("cls");
             }
-        }while(mode_code<0 || mode_code>2);
-        game_mode = mode_code;
+        }while(!('0'<=mode_code && mode_code<='2'));
+        game_mode = mode_code-'0';
 
         //初始化
         if(game_mode == P2P){

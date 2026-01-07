@@ -70,8 +70,8 @@ int dropPiece(Board* board, int row, int col, Piece piece_color){
     board->last_col = col;
     board->last_row = row;
     board->pieceTotal++;
-    for(int dx=-2; dx<=2; ++dx){
-        for(int dy=-2; dy<=2; ++dy){
+    for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
+        for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
             if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
                 board->possibleMove[row+dx][col+dy] += 1;
             }
