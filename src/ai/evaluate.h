@@ -14,14 +14,44 @@
 #include "../board/board.h"
 #include "../rule/rule.h"
 #include <string.h>
+#include<math.h>
 
 /**
  * @brief 棋局评估函数
  * 
  * @param board 棋盘
- * @param current_player 当前玩家
+ * @param ai_player AI玩家
  * @return int 评估值
  */
-int evaluatePosition(const Board* board, Player current_player);
+int evaluateFullBoard(const Board* board, Player ai_player);
+
+/**
+ * @brief 对特定位置的评估函数
+ * 
+ * @param board 棋盘
+ * @param row 行
+ * @param col 列
+ * @param ai_color AI颜色
+ * @param current_color 目前落子的颜色
+ * @return int 该点位评估值
+ */
+int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece current_color);
+
+/**
+ * @brief 用于qsort的结构体比较函数
+ * 
+ * @param a 比较对象a
+ * @param b 比较对象b
+ * @return int 
+ */
+int cmp(const void* a, const void* b);
+
+// int cmp_min(const void* a, const void* b);
+
+// /**
+//  * @brief 计算位置权重，用于初始化
+//  * 
+//  */
+// void calcPositionWeight();
 
 #endif

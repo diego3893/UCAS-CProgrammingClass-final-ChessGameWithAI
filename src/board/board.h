@@ -20,6 +20,8 @@
 #define INPUT_MAX_LEN 3 //输入最大限制
 #define INPUT_MIN_LEN 2 //输入最大限制
 
+#define NEIGHBORHOOD_SIZE 1
+
 /**
  * @brief 棋子，枚举类型，标识当前棋子的状态是黑/白/空白
  * 
@@ -36,6 +38,7 @@ typedef enum{
  */
 typedef struct{
     Piece pieceColor[BOARD_SIZE+1][BOARD_SIZE+1];
+    int possibleMove[BOARD_SIZE+1][BOARD_SIZE+1];
     int last_row;
     int last_col;
     int pieceTotal;
@@ -46,6 +49,12 @@ typedef enum{
     P2AI_PLAYER_BLACK,
     P2AI_PLAYER_WHITE
 }GameMode;
+
+typedef struct{
+    int row;
+    int col;
+    int score;
+}PossibleMoves;
 
 /**
  * @brief 棋盘初始化
