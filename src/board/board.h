@@ -36,7 +36,7 @@ typedef enum{
  */
 typedef struct{
     Piece pieceColor[BOARD_SIZE+1][BOARD_SIZE+1];
-    int possibleMoves[BOARD_SIZE+1][BOARD_SIZE+1];
+    int possibleMove[BOARD_SIZE+1][BOARD_SIZE+1];
     int last_row;
     int last_col;
     int pieceTotal;
@@ -47,6 +47,12 @@ typedef enum{
     P2AI_PLAYER_BLACK,
     P2AI_PLAYER_WHITE
 }GameMode;
+
+typedef struct{
+    int row;
+    int col;
+    int score;
+}PossibleMoves;
 
 /**
  * @brief 棋盘初始化

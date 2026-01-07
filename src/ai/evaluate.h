@@ -22,6 +22,10 @@
  * @param ai_player AI玩家
  * @return int 评估值
  */
-int evaluatePosition(const Board* board, Player ai_player);
+int evaluateFullBoard(const Board* board, Player ai_player);
+
+int evaluatePostion(const Board* board, int row, int col, Piece color);
+
+int cmp(const void* a, const void* b);
 
 #endif

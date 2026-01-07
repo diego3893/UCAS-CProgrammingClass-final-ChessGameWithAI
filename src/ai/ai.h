@@ -11,7 +11,7 @@
 #include <windows.h>
 
 // 搜索深度，可根据需要调整
-#define SEARCH_DEPTH 2
+#define SEARCH_DEPTH 4
 
 /**
  * @brief AI决策函数，返回最佳落子位置
@@ -41,5 +41,9 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
  * 
  */
 void initAI();
+
+int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece color);
+
+
 
 #endif

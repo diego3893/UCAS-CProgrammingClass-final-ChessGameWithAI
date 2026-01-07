@@ -12,127 +12,119 @@ void initAI() {
     st_ms = GetTickCount();
 }
 
+int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece color){
+    int Index = 0;
+    for(int i=1; i<=BOARD_SIZE; ++i){
+        for(int j=1; j<=BOARD_SIZE; ++j){
+            if(board->pieceColor[i][j] == BLANK){
+                if(board->possibleMove[i][j] > 0){
+                    possible_moves[Index].row = i;
+                    possible_moves[Index].col = j;
+                    possible_moves[Index++].score = evaluatePostion(board, i, j, color);
+                }else{
+                    continue;
+                }
+            }else{
+                continue;
+            }
+        }
+    }
+    qsort(possible_moves, Index, sizeof(PossibleMoves), cmp);
+    return Index;
+}
+
 // Alpha-Beta剪枝搜索
 int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_player, Piece ai_color) {
     // 到达搜索深度或游戏结束，返回评估值
     if (depth == 0) {
-        return evaluatePosition(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
+        return evaluateFullBoard(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
     }
     
     Piece current_color = is_max_player ? ai_color : (ai_color == BLACK ? WHITE : BLACK);
 
     int row, col;
-    bool pruning = false;
     if (is_max_player) {
         int max_score = INT_MIN;
-        for (int i = 1; i <=15; ++i) {
-            if(pruning){
+        PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
+        int move_cnt = generatePossibleMoves(board, possible_moves, current_color);
+        for(int i=0; i<move_cnt; ++i){
+            if(possible_moves[i].score < 0){
+                continue;
+            }
+            row = possible_moves[i].row;
+            col = possible_moves[i].col;
+            // 尝试落子
+            if (dropPiece(board, row, col, current_color) != 1) {
+                continue;
+            }
+            
+            // 递归搜索
+            int score = alphaBetaSearch(board, depth - 1, alpha, beta, false, ai_color);
+            
+            // 撤销落子
+            board->pieceColor[row][col] = BLANK;
+            board->pieceTotal--;
+            for(int dx=-2; dx<=2; ++dx){
+                for(int dy=-2; dy<=2; ++dy){
+                    if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
+                        board->possibleMove[row+dx][col+dy] -= 1;
+                    }
+                }
+            }
+            if (score > max_score) {
+                max_score = score;
+            }
+            if (max_score > alpha) {
+                alpha = max_score;
+            }
+            // Alpha剪枝
+            if (alpha >= beta) {
                 break;
             }
-            for(int j=1; j<=15; ++j){
-                if(board->pieceColor[i][j] == BLANK){
-                    if(board->possibleMoves[i][j] > 0){
-                        row = i;
-                        col = j;
-                    }else{
-                        continue;
-                    }
-                }else{
-                    continue;
-                }
-                
-                // 检查是否为禁手（仅对黑棋有效）
-                if (current_color == BLACK && isForbiddenPosition(board, row, col)) {
-                    continue;
-                }
-                
-                // 尝试落子
-                if (dropPiece(board, row, col, current_color) != 1) {
-                    continue;
-                }
-                
-                // 递归搜索
-                int score = alphaBetaSearch(board, depth - 1, alpha, beta, false, ai_color);
-                
-                // 撤销落子
-                board->pieceColor[row][col] = BLANK;
-                board->pieceTotal--;
-                for(int dx=-2; dx<=2; ++dx){
-                    for(int dy=-2; dy<=2; ++dy){
-                        if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
-                            board->possibleMoves[row+dx][col+dy] -= 1;
-                        }
-                    }
-                }
-                if (score > max_score) {
-                    max_score = score;
-                }
-                if (max_score > alpha) {
-                    alpha = max_score;
-                }
-                // Alpha剪枝
-                if (alpha >= beta) {
-                    pruning = true;
-                    break;
-                }
-            }
         }
+
         return max_score;
     } else {
         int min_score = INT_MAX;
-        for (int i = 1; i <=15; i++) {
-            if(pruning){
+        PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
+        int move_cnt = generatePossibleMoves(board, possible_moves, current_color);
+        for(int i=0; i<move_cnt; ++i){
+            if(possible_moves[i].score < 0){
+                continue;
+            }
+            row = possible_moves[i].row;
+            col = possible_moves[i].col;
+            // 尝试落子
+            if (dropPiece(board, row, col, current_color) != 1) {
+                continue;
+            }
+            
+            // 递归搜索
+            int score = alphaBetaSearch(board, depth - 1, alpha, beta, true, ai_color);
+            
+            // 撤销落子
+            board->pieceColor[row][col] = BLANK;
+            board->pieceTotal--;
+            for(int dx=-2; dx<=2; ++dx){
+                for(int dy=-2; dy<=2; ++dy){
+                    if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
+                        board->possibleMove[row+dx][col+dy] -= 1;
+                    }
+                }
+            }
+            
+            if (score < min_score) {
+                min_score = score;
+            }
+            if (min_score < beta) {
+                beta = min_score;
+            }
+            // Beta剪枝
+            if (alpha >= beta) {
                 break;
             }
-            for(int j=1; j<=15; ++j){
-                if(board->pieceColor[i][j] == BLANK){
-                    if(board->possibleMoves[i][j] > 0){
-                        row = i;
-                        col = j;
-                    }else{
-                        continue;
-                    }
-                }else{
-                    continue;
-                }
-                
-                // 检查是否为禁手（仅对黑棋有效）
-                if (current_color == BLACK && isForbiddenPosition(board, row, col)) {
-                    continue;
-                }
-                
-                // 尝试落子
-                if (dropPiece(board, row, col, current_color) != 1) {
-                    continue;
-                }
-                
-                // 递归搜索
-                int score = alphaBetaSearch(board, depth - 1, alpha, beta, true, ai_color);
-                
-                // 撤销落子
-                board->pieceColor[row][col] = BLANK;
-                board->pieceTotal--;
-                for(int dx=-2; dx<=2; ++dx){
-                    for(int dy=-2; dy<=2; ++dy){
-                        if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
-                            board->possibleMoves[row+dx][col+dy] -= 1;
-                        }
-                    }
-                }
-                
-                if (score < min_score) {
-                    min_score = score;
-                }
-                if (min_score < beta) {
-                    beta = min_score;
-                }
-                // Beta剪枝
-                if (alpha >= beta) {
-                    pruning = true;
-                    break;
-                }
-            }
         }
+
         return min_score;
     }
 }
@@ -160,53 +152,50 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col) {
     
     int current_row, current_col;
     // 遍历所有可能的落子位置
-    for (int i = 1; i <= 15; i++) {
-        for(int j=1; j<=15; ++j){
-            if(board->pieceColor[i][j] == BLANK){
-                if(board->possibleMoves[i][j] > 0){
-                    current_row = i;
-                    current_col = j;
-                }else{
-                    continue;
+    PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
+    int move_cnt = generatePossibleMoves(board, possible_moves, ai_color);
+
+    for(int i=0; i<move_cnt; ++i){
+        if(possible_moves[i].score < 0){
+            continue;
+        }
+        if(possible_moves[i].score >= 100000){
+            *row = possible_moves[i].row;
+            *col = possible_moves[i].col;
+            ed_ms = GetTickCount();
+            double time_use = (double)(ed_ms-st_ms);
+            return time_use;
+        }
+        current_row = possible_moves[i].row;
+        current_col = possible_moves[i].col;
+        // 尝试落子
+        if (dropPiece(&board_copy, current_row, current_col, ai_color) != 1) {
+            continue;
+        }
+        
+        // 搜索评估
+        int score = alphaBetaSearch(&board_copy, SEARCH_DEPTH - 1, INT_MIN, INT_MAX, false, ai_color);
+        
+        // 撤销落子
+        board_copy.pieceColor[current_row][current_col] = BLANK;
+        board_copy.pieceTotal--;
+        for(int dx=-2; dx<=2; ++dx){
+            for(int dy=-2; dy<=2; ++dy){
+                if(1<=(current_row+dx) && (current_row+dx)<=BOARD_SIZE && 
+                    1<=(current_col+dy) && (current_col+dy)<=BOARD_SIZE){
+                    board_copy.possibleMove[current_row+dx][current_col+dy] -= 1;
                 }
-            }else{
-                continue;
-            }
-            
-            // 检查是否为禁手（仅对黑棋有效）
-            if (ai_color == BLACK && isForbiddenPosition(&board_copy, current_row, current_col)) {
-                continue;
-            }
-            
-            // 尝试落子
-            if (dropPiece(&board_copy, current_row, current_col, ai_color) != 1) {
-                continue;
-            }
-            
-            // 搜索评估
-            int score = alphaBetaSearch(&board_copy, SEARCH_DEPTH - 1, INT_MIN, INT_MAX, false, ai_color);
-            
-            // 撤销落子
-            board_copy.pieceColor[current_row][current_col] = BLANK;
-            board_copy.pieceTotal--;
-            for(int dx=-2; dx<=2; ++dx){
-                for(int dy=-2; dy<=2; ++dy){
-                    if(1<=(current_row+dx) && (current_row+dx)<=BOARD_SIZE && 
-                        1<=(current_col+dy) && (current_col+dy)<=BOARD_SIZE){
-                        board_copy.possibleMoves[current_row+dx][current_col+dy] -= 1;
-                    }
-                }
-            }
-            
-            // 更新最佳分数和位置
-            if (score > best_score) {
-                best_score = score;
-                best_move_row = i;
-                best_move_col = j;
             }
         }
         
+        // 更新最佳分数和位置
+        if (score > best_score) {
+            best_score = score;
+            best_move_row = current_row;
+            best_move_col = current_col;
+        }
     }
+
     
     // 返回最佳落子位置
     *row = best_move_row;

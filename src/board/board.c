@@ -7,7 +7,7 @@ void boardInit(Board* board){
     for(int i=0; i<=BOARD_SIZE; ++i){
         for(int j=0; j<=BOARD_SIZE; ++j){
             board->pieceColor[i][j] = BLANK;
-            board->possibleMoves[i][j] = 0;
+            board->possibleMove[i][j] = 0;
         }
     }
     board->last_col = -1;
@@ -73,7 +73,7 @@ int dropPiece(Board* board, int row, int col, Piece piece_color){
     for(int dx=-2; dx<=2; ++dx){
         for(int dy=-2; dy<=2; ++dy){
             if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
-                board->possibleMoves[row+dx][col+dy] += 1;
+                board->possibleMove[row+dx][col+dy] += 1;
             }
         }
     }
