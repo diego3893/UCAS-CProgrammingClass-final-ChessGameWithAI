@@ -11,7 +11,7 @@
 #include <windows.h>
 
 // 搜索深度，可根据需要调整
-#define SEARCH_DEPTH 4
+#define SEARCH_DEPTH 2
 #define MAX_TIME 15000
 
 /**
