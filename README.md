@@ -17,7 +17,7 @@
   - [x] 置换表
 - [x] 修改文件结构，添加AI模块
 - [x] 适配三种游戏模式
-- [ ] 修改README
+- [x] 修改README
 ## 项目简介
 
 本项目为人机对战五子棋，在控制台（cmd）运行，由玩家和AI轮流输入落子坐标，程序将自动判定玩家是否获胜、是否出现禁手。
@@ -100,12 +100,31 @@ mingw32-make
   - `GameStatus judgeStatus(const Board* board, int row, int col, Player current_player)`：判断游戏状态（返回继续游戏、黑/白胜、禁手或平局）
   - `void checkChessShape(const Board* board, int row, int col, int chess_shape_cnt[], Player current_player)`：统计当前棋子参与构成的棋型，结果存储在棋型统计数组中
   - `int checkLiveThree(const Board* board, int row, int col)`：统计活三个数（包括跳活三）
-  - `int checkLiveFour(const Board* board, int row, int col)`：统计活四个数
+  - `int checkLiveFour(const Board* board, int row, int col)`：统计活四个数 
   - `int checkBreakthroughFour(const Board* board, int row, int col)`：统计冲四个数
   - `int checkLongChain(const Board* board, int row, int col)`：统计长连个数
   - `int checkFiveInRow(const Board* board, int row, int col, Player current_player)`：统计五连个数
   - `bool isForbiddenMove(const int chess_shape_cnt[])`：根据棋型统计数组判断是否为禁手（是返回true，否返回false）
-  - `bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, DeltaPair dir)`：检查特定方向上连成的棋型，判断是否为活四或五连（是返回true，否返回false）
+  - `bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, DeltaPair dir)`：检查特定方向上连成的棋型，判断是否为活三、活四或五连（是返回true，否返回false）
+  - `bool isForbiddenPosition(const Board* board, int row, int col)`：模拟落子，判断空白位置是否为禁手点位
+  - `int checkLiveTwo(const Board* board, int row, int col, Player current_player)`：统计活二个数
+- ai.c
+  - `double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col)`：AI决策函数，返回最佳落子位置
+  - `int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_player, Piece ai_color, ULL current_hash)`：极大极小搜索算法带alpha-beta剪枝
+  - `void initAI()`：初始化随机种子，初始化置换表，获取搜索起始时间
+  - `int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece ai_color, bool is_max_player)`：邻域搜索、排序优先搜索（降序）生成函数
+  - `int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c)`：迭代加深搜索
+- evaluate.c
+  - `int evaluateFullBoard(const Board* board, Player ai_player)`：棋局评估函数
+  - `int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece current_color)`：对特定位置的评估函数
+  - `int cmp(const void* a, const void* b)`：用于qsort的结构体降序比较
+- tt.c
+  - `void initZobrist()`：初始化Zobrist随机数
+  - `void clearTT()`：清空置换表哈希值
+  - `ULL hashBoard(const Board* board)`：计算整个棋盘的哈希值
+  - `void updateHash(ULL* hash, int row, int col, int old_color, int new_color)`：异或更新哈希值
+  - `void storeTT(ULL hash, int score, int depth, int type)`：保存置换表
+  - `bool retrieveTT(ULL hash, int* score, int* depth, int* type)`：读取置换表，查询数据
 
 ## 已知问题
 
