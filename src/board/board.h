@@ -22,6 +22,8 @@
 
 #define NEIGHBORHOOD_SIZE 1 // 邻域标记范围
 
+extern int neighborhood_size;
+
 /**
  * @brief 棋子，枚举类型，标识当前棋子的状态是黑/白/空白
  * 

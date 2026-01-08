@@ -46,12 +46,4 @@ int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece 
  */
 int cmp(const void* a, const void* b);
 
-// int cmp_min(const void* a, const void* b);
-
-// /**
-//  * @brief 计算位置权重，用于初始化
-//  * 
-//  */
-// void calcPositionWeight();
-
 #endif

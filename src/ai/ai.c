@@ -3,6 +3,8 @@
 
 DWORD st_ms, now_ms;
 bool deepening_stop;
+int timeout_cnt = 0;
+bool reset_neighborhood_size = false;
 
 void initAI(){
     static int initialized = 0;
@@ -93,8 +95,8 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
             board->pieceColor[row][col] = BLANK;
             board->pieceTotal--;
             updateHash(&current_hash, row, col, current_color, BLANK);
-            for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
-                for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
+            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
+                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
                     if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
                         board->possibleMove[row+dx][col+dy] -= 1;
                     }
@@ -134,8 +136,8 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
             board->pieceColor[row][col] = BLANK;
             board->pieceTotal--;
             updateHash(&current_hash, row, col, current_color, BLANK);
-            for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
-                for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
+            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
+                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
                     if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
                         board->possibleMove[row+dx][col+dy] -= 1;
                     }
@@ -195,8 +197,8 @@ int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int 
             board->pieceColor[row][col] = BLANK;
             board->pieceTotal--;
             updateHash(&board_hash, row, col, ai_color, BLANK); 
-            for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
-                for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
+            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
+                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
                     if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
                         board->possibleMove[row+dx][col+dy] -= 1;
                     }
@@ -211,6 +213,7 @@ int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int 
         }
         if(deepening_stop){
             printf("迭代加深超时，终止于深度：%d\n", current_depth-2);
+            timeout_cnt++;
             break;
         }
         
@@ -259,7 +262,16 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
         }
     }
 
-    int score = iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, TG_SEARCH_DEPTH, row, col);
+    int tg_search_depth = max(ST_SEARCH_DEPTH, TG_SEARCH_DEPTH-2*floor(timeout_cnt/3.0));
+    if(tg_search_depth > ST_SEARCH_DEPTH){
+        neighborhood_size = NEIGHBORHOOD_SIZE;
+    }else if(tg_search_depth == ST_SEARCH_DEPTH){
+        neighborhood_size = NEIGHBORHOOD_SIZE+1;
+    }
+    if(timeout_cnt>6 || reset_neighborhood_size){
+        neighborhood_size = NEIGHBORHOOD_SIZE;
+    }
+    int score = iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, tg_search_depth, row, col);
     
     now_ms = GetTickCount();
     double time_use =(double)(now_ms-st_ms);
@@ -272,6 +284,9 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
             *col = possible_moves[i].col;
             break;
         }
+    }
+    if(tg_search_depth==ST_SEARCH_DEPTH && time_use>=MAX_TIME-1000){
+        reset_neighborhood_size = true;
     }
     return time_use;
 }
