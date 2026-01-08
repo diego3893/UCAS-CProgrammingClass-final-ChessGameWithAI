@@ -11,9 +11,9 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include<windows.h>
-#include<stdio.h>
-#include"../board/board.h"
+#include <windows.h>
+#include <stdio.h>
+#include "../board/board.h"
 
 #define CROSS "\xE2\x94\xBC"
 #define WHITE_PIECE "\xE2\x97\x8B"

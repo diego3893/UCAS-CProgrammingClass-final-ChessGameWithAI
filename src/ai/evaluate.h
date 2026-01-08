@@ -14,7 +14,7 @@
 #include "../board/board.h"
 #include "../rule/rule.h"
 #include <string.h>
-#include<math.h>
+#include <math.h>
 
 /**
  * @brief 棋局评估函数
@@ -38,20 +38,12 @@ int evaluateFullBoard(const Board* board, Player ai_player);
 int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece current_color);
 
 /**
- * @brief 用于qsort的结构体比较函数
+ * @brief 用于qsort的结构体降序比较
  * 
  * @param a 比较对象a
  * @param b 比较对象b
- * @return int 
+ * @return int 比较结果，0 a=b，-1 a>b，1 a<b
  */
 int cmp(const void* a, const void* b);
-
-// int cmp_min(const void* a, const void* b);
-
-// /**
-//  * @brief 计算位置权重，用于初始化
-//  * 
-//  */
-// void calcPositionWeight();
 
 #endif

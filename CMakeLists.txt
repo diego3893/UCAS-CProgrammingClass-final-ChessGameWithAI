@@ -21,6 +21,7 @@ set(MAIN_SOURCES
     src/rule/rule.c
     src/ai/ai.c
     src/ai/evaluate.c
+    src/ai/tt.c
 )
 
 add_executable(ChessGame ${MAIN_SOURCES})

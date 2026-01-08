@@ -11,8 +11,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include<stdbool.h>
-#include<string.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define BOARD_SIZE 15 //棋盘大小
 #define COL_FROM_CHAR(c) ((c)-'A'+1) //列坐标转换
@@ -20,7 +20,9 @@
 #define INPUT_MAX_LEN 3 //输入最大限制
 #define INPUT_MIN_LEN 2 //输入最大限制
 
-#define NEIGHBORHOOD_SIZE 1
+#define NEIGHBORHOOD_SIZE 1 // 邻域标记范围
+
+extern int neighborhood_size;
 
 /**
  * @brief 棋子，枚举类型，标识当前棋子的状态是黑/白/空白

@@ -1,4 +1,6 @@
-#include"board.h"
+#include "board.h"
+
+int neighborhood_size = NEIGHBORHOOD_SIZE;
 
 void boardInit(Board* board){
     if(board == NULL){
@@ -70,8 +72,8 @@ int dropPiece(Board* board, int row, int col, Piece piece_color){
     board->last_col = col;
     board->last_row = row;
     board->pieceTotal++;
-    for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
-        for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
+    for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
+        for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
             if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
                 board->possibleMove[row+dx][col+dy] += 1;
             }

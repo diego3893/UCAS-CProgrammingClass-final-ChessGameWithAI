@@ -100,31 +100,3 @@ int cmp(const void* a, const void* b){
     }
 
 }
-
-// int cmp_min(const void* a, const void* b){
-    
-//     // 1. 将通用指针转换为结构体指针（C语言只能通过指针访问）
-//     const PossibleMoves *moveA = (const PossibleMoves *)a;
-//     const PossibleMoves *moveB = (const PossibleMoves *)b;
-    
-//     // 2. 实现 a.score > b.score 的降序逻辑（对应你想要的 return a.score>b.score）
-//     if (moveA->score > moveB->score) {
-//         return 1;  // 成绩高的在前（降序），返回-1
-//     } else if (moveA->score < moveB->score) {
-//         return -1;   
-//     } else {
-//         return 0;   // 成绩相等，顺序不变
-//     }
-
-// }
-
-// void calcPositionWeight(){
-//     double dis;
-//     for(int i=1; i<=BOARD_SIZE; ++i){
-//         for(int j=1; j<=BOARD_SIZE; ++j){
-//             dis = sqrt((i-8.0)*(i-8.0)+(j-8.0)*(j-8.0));
-//             position_weight[i][j] = 2.0/(1+dis/7*3);
-//         }
-//     }
-//     return;
-// }

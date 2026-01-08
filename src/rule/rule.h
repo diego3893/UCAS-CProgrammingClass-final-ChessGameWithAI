@@ -11,8 +11,8 @@
 #ifndef RULE_H
 #define RULE_H
 
-#include"../board/board.h"
-#include"../display/display.h"
+#include "../board/board.h"
+#include "../display/display.h"
 
 /**
  * @brief 控制坐标移动

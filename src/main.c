@@ -1,7 +1,7 @@
-#include"board/board.h"
-#include"display/display.h"
-#include"rule/rule.h"
-#include"ai/ai.h"
+#include "board/board.h"
+#include "display/display.h"
+#include "rule/rule.h"
+#include "ai/ai.h"
 
 Board board;
 Piece piece_color = WHITE;
@@ -15,7 +15,6 @@ int row, col;
 int trans_flag, drop_flag;
 
 int main(){
-    // 设置编码为UTF-8
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
 
@@ -39,20 +38,17 @@ int main(){
         }while(!('0'<=mode_code && mode_code<='2'));
         game_mode = mode_code-'0';
 
-        //初始化
         if(game_mode == P2P){
-            //初始化
             boardInit(&board);
             showBoard(&board);
             restart = 'n';
             piece_color = WHITE;
             current_player = PLAYER_WHITE;
             game_status = PLAYING;
-            //游戏开始
             while(game_status == PLAYING){
-                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE; //轮流落子
+                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE;
                 piece_color = (piece_color==WHITE) ? BLACK : WHITE;
-                input[0] = '\0'; //重置输入
+                input[0] = '\0';
                 trans_flag = 0, drop_flag = 0;
                 do{
                     if(strlen(input) != 0){
@@ -76,14 +72,12 @@ int main(){
                     }
                     showInputPrompt(current_player);
                     getInput(input, INPUT_MAX_LEN);
-                    trans_flag = transInput2Coord(input, &row, &col); //坐标转换
+                    trans_flag = transInput2Coord(input, &row, &col);
                     // printf("%d,%d\n", row, col);
                     // system("pause");
                     if(!trans_flag){
                         continue;
                     }
-                    //转换成功则落子
-                    //判断第一手是否在天元
                     if(board.pieceTotal == 0){
                         if(row!=8 || col!=8){
                             drop_flag = -2;
@@ -93,7 +87,7 @@ int main(){
                     }else{
                         drop_flag = dropPiece(&board, row, col, piece_color);
                     }
-                }while(drop_flag != 1); //直到落子成功才退出输入环节
+                }while(drop_flag != 1);
                 showBoard(&board);
                 game_status = judgeStatus(&board, row, col, current_player);
             }
@@ -108,12 +102,11 @@ int main(){
             piece_color = WHITE;
             current_player = PLAYER_WHITE;
             game_status = PLAYING;
-            //游戏开始
             while(game_status == PLAYING){
-                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE; //轮流落子
+                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE;
                 piece_color = (piece_color==WHITE) ? BLACK : WHITE;
                 if(piece_color != ai_color){
-                    input[0] = '\0'; //重置输入
+                    input[0] = '\0';
                     trans_flag = 0, drop_flag = 0;
                     do{
                         if(strlen(input) != 0){
@@ -137,14 +130,12 @@ int main(){
                         }
                         showInputPrompt(current_player);
                         getInput(input, INPUT_MAX_LEN);
-                        trans_flag = transInput2Coord(input, &row, &col); //坐标转换
+                        trans_flag = transInput2Coord(input, &row, &col);
                         // printf("%d,%d\n", row, col);
                         // system("pause");
                         if(!trans_flag){
                             continue;
                         }
-                        //转换成功则落子
-                        //判断第一手是否在天元
                         if(board.pieceTotal == 0){
                             if(row!=8 || col!=8){
                                 drop_flag = -2;
@@ -154,9 +145,10 @@ int main(){
                         }else{
                             drop_flag = dropPiece(&board, row, col, piece_color);
                         }
-                    }while(drop_flag != 1); //直到落子成功才退出输入环节
+                    }while(drop_flag != 1);
                 }else{
                     printf("AI思考中……\n");
+                    printf("当前邻域搜索范围：%d\n", neighborhood_size);
                     time_use_now = aiMakeDecision(&board, ai_color, &row, &col);
                     time_use_total += time_use_now;
                     drop_flag = dropPiece(&board, row, col, piece_color);
@@ -180,12 +172,11 @@ int main(){
             piece_color = WHITE;
             current_player = PLAYER_WHITE;
             game_status = PLAYING;
-            //游戏开始
             while(game_status == PLAYING){
-                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE; //轮流落子
+                current_player = (current_player==PLAYER_WHITE) ? PLAYER_BLACK : PLAYER_WHITE;
                 piece_color = (piece_color==WHITE) ? BLACK : WHITE;
                 if(piece_color != ai_color){
-                    input[0] = '\0'; //重置输入
+                    input[0] = '\0';
                     trans_flag = 0, drop_flag = 0;
                     do{
                         if(strlen(input) != 0){
@@ -209,14 +200,12 @@ int main(){
                         }
                         showInputPrompt(current_player);
                         getInput(input, INPUT_MAX_LEN);
-                        trans_flag = transInput2Coord(input, &row, &col); //坐标转换
+                        trans_flag = transInput2Coord(input, &row, &col);
                         // printf("%d,%d\n", row, col);
                         // system("pause");
                         if(!trans_flag){
                             continue;
                         }
-                        //转换成功则落子
-                        //判断第一手是否在天元
                         if(board.pieceTotal == 0){
                             if(row!=8 || col!=8){
                                 drop_flag = -2;
@@ -226,9 +215,10 @@ int main(){
                         }else{
                             drop_flag = dropPiece(&board, row, col, piece_color);
                         }
-                    }while(drop_flag != 1); //直到落子成功才退出输入环节
+                    }while(drop_flag != 1);
                 }else{
                     printf("AI思考中……\n");
+                    printf("当前邻域搜索范围：%d\n", neighborhood_size);
                     time_use_now = aiMakeDecision(&board, ai_color, &row, &col);
                     time_use_total += time_use_now;
                     drop_flag = dropPiece(&board, row, col, piece_color);
