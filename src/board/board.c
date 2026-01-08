@@ -1,4 +1,4 @@
-#include"board.h"
+#include "board.h"
 
 void boardInit(Board* board){
     if(board == NULL){

@@ -1,4 +1,4 @@
-#include"display.h"
+#include "display.h"
 
 void showBoard(const Board* board){
     system("cls");
