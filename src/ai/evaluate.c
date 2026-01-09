@@ -67,18 +67,14 @@ int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece 
     }
 
     checkChessShape(board, row, col, opp_shape_cnt, (ai_color==BLACK)?PLAYER_WHITE:PLAYER_BLACK);
-    if(current_color == ai_color){
-        score += opp_shape_cnt[LIVE_TWO]*SHAPE_SCORES[LIVE_TWO];
-        score += 5*opp_shape_cnt[LIVE_THREE]*SHAPE_SCORES[LIVE_THREE];
-        score += 10*opp_shape_cnt[BREAKTHROUGH_FOUR]*SHAPE_SCORES[BREAKTHROUGH_FOUR];
-        score += 10*opp_shape_cnt[LIVE_FOUR]*SHAPE_SCORES[LIVE_FOUR];
-        score += 20*opp_shape_cnt[FIVE_IN_ROW]*SHAPE_SCORES[FIVE_IN_ROW];
-    }else{
-        score += opp_shape_cnt[LIVE_TWO]*SHAPE_SCORES[LIVE_TWO];
-        score += opp_shape_cnt[LIVE_THREE]*SHAPE_SCORES[LIVE_THREE];
-        score += opp_shape_cnt[BREAKTHROUGH_FOUR]*SHAPE_SCORES[BREAKTHROUGH_FOUR];
-        score += opp_shape_cnt[LIVE_FOUR]*SHAPE_SCORES[LIVE_FOUR];
-        score += opp_shape_cnt[FIVE_IN_ROW]*SHAPE_SCORES[FIVE_IN_ROW];
+    score += opp_shape_cnt[LIVE_TWO]*SHAPE_SCORES[LIVE_TWO];
+    score += opp_shape_cnt[LIVE_THREE]*SHAPE_SCORES[LIVE_THREE];
+    score += opp_shape_cnt[BREAKTHROUGH_FOUR]*SHAPE_SCORES[BREAKTHROUGH_FOUR];
+    score += opp_shape_cnt[LIVE_FOUR]*SHAPE_SCORES[LIVE_FOUR];
+    score += opp_shape_cnt[FIVE_IN_ROW]*SHAPE_SCORES[FIVE_IN_ROW];
+
+    if(ai_color==WHITE && isForbiddenMove(opp_shape_cnt)){
+        score += SHAPE_SCORES[5];
     }
 
     return score;
