@@ -250,15 +250,24 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
         if((double)(now_ms-st_ms) > MAX_TIME){
             break;
         }
-        if(possible_moves[i].score < 100000){
-            break;
-        }
         if(possible_moves[i].score >= 100000){
-            *row = possible_moves[i].row;
-            *col = possible_moves[i].col;
-            now_ms = GetTickCount();
-            double time_use =(double)(now_ms-st_ms);
-            return time_use;
+            if(ai_color == BLACK){
+                int shape_cnt[CHESS_SHAPE_CNT] = {0};
+                checkChessShape(board, possible_moves[i].row, possible_moves[i].col, shape_cnt, PLAYER_BLACK);
+                if(!isForbiddenMove(shape_cnt)){
+                    *row = possible_moves[i].row;
+                    *col = possible_moves[i].col;
+                    now_ms = GetTickCount();
+                    double time_use =(double)(now_ms-st_ms);
+                    return time_use;
+                }
+            }else{
+                *row = possible_moves[i].row;
+                *col = possible_moves[i].col;
+                now_ms = GetTickCount();
+                double time_use =(double)(now_ms-st_ms);
+                return time_use;
+            }
         }
     }
 
