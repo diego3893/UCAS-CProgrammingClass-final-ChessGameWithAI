@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 #define ST_SEARCH_DEPTH 2 // 起始搜索深度
-#define TG_SEARCH_DEPTH 6 // 终止搜索深度
+#define TG_SEARCH_DEPTH 7 // 终止搜索深度
 #define MAX_TIME 15000 // 最大搜索时间
 
 /**

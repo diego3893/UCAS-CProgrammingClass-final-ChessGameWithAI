@@ -148,7 +148,7 @@ int main(){
                     }while(drop_flag != 1);
                 }else{
                     printf("AI思考中……\n");
-                    printf("当前邻域搜索范围：%d\n", neighborhood_size);
+                    printf("当前邻域搜索范围：%d\n", NEIGHBORHOOD_SIZE);
                     time_use_now = aiMakeDecision(&board, ai_color, &row, &col);
                     time_use_total += time_use_now;
                     drop_flag = dropPiece(&board, row, col, piece_color);
@@ -218,7 +218,7 @@ int main(){
                     }while(drop_flag != 1);
                 }else{
                     printf("AI思考中……\n");
-                    printf("当前邻域搜索范围：%d\n", neighborhood_size);
+                    printf("当前邻域搜索范围：%d\n", NEIGHBORHOOD_SIZE);
                     time_use_now = aiMakeDecision(&board, ai_color, &row, &col);
                     time_use_total += time_use_now;
                     drop_flag = dropPiece(&board, row, col, piece_color);
