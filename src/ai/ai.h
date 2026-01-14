@@ -79,4 +79,6 @@ int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Pi
  */
 int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c);
 
+void sortMovesHeuristic(PossibleMoves moves[], int count, int depth, int tt_r, int tt_c);
+
 #endif

@@ -27,10 +27,18 @@ void initAI(){
 
 int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece ai_color, bool is_max_player){
     int Index = 0;
+    // 确定当前这一层是谁在落子
     Piece current_color = is_max_player ? ai_color : (ai_color == BLACK ? WHITE : BLACK);
+    
     for(int i=1; i<=BOARD_SIZE; ++i){
         for(int j=1; j<=BOARD_SIZE; ++j){
             if(board->pieceColor[i][j] == BLANK && board->possibleMove[i][j] > 0){
+                // 新增：如果当前落子方是黑棋，且该位置是禁手点，则跳过（除非能成五）
+                // isForbiddenPosition 内部已处理五连优先逻辑
+                if (current_color == BLACK && isForbiddenPosition(board, i, j)) {
+                    continue;
+                }
+
                 possible_moves[Index].row = i;
                 possible_moves[Index].col = j;
                 possible_moves[Index++].score = evaluatePostion(board, i, j, ai_color, current_color);
@@ -91,21 +99,34 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
         updateHash(&current_hash, row, col, BLANK, current_color);
 
         int score;
-        if(!found_pv){
-            // 第一个节点使用全窗口
-            score = alphaBetaSearch(board, depth - 1, alpha, beta, !is_max_player, ai_color, current_hash);
+        GameStatus status = judgeStatus(board, row, col, is_max_player ? 
+                            ((ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE) : 
+                            ((ai_color==BLACK)?PLAYER_WHITE:PLAYER_BLACK));
+        if (status == FORBIDDEN_MOVE) {
+            // 当前玩家走出了禁手，对于当前层玩家来说是极大的惩罚
+            score = is_max_player ? (INT_MIN + 1000 + depth) : (INT_MAX - 1000 - depth);
+        } else if (status == BLACK_WIN || status == WHITE_WIN) {
+            // 当前玩家获胜
+            score = is_max_player ? (INT_MAX - 1000 - depth) : (INT_MIN + 1000 + depth);
+        } else if (depth == 0 || status == DRAW) {
+            score = evaluateFullBoard(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
         } else {
-            // PVS：后续节点先尝试零窗口搜索
-            if(is_max_player){
-                score = alphaBetaSearch(board, depth - 1, alpha, alpha + 1, false, ai_color, current_hash);
-                if(score > alpha && score < beta) // 零窗口失败，重搜
-                    score = alphaBetaSearch(board, depth - 1, alpha, beta, false, ai_color, current_hash);
+            if(!found_pv){
+                // 第一个节点使用全窗口
+                score = alphaBetaSearch(board, depth - 1, alpha, beta, !is_max_player, ai_color, current_hash);
             } else {
-                score = alphaBetaSearch(board, depth - 1, beta - 1, beta, true, ai_color, current_hash);
-                if(score < beta && score > alpha)
-                    score = alphaBetaSearch(board, depth - 1, alpha, beta, true, ai_color, current_hash);
+                // PVS：后续节点先尝试零窗口搜索
+                if(is_max_player){
+                    score = alphaBetaSearch(board, depth - 1, alpha, alpha + 1, false, ai_color, current_hash);
+                    if(score > alpha && score < beta) // 零窗口失败，重搜
+                        score = alphaBetaSearch(board, depth - 1, alpha, beta, false, ai_color, current_hash);
+                } else {
+                    score = alphaBetaSearch(board, depth - 1, beta - 1, beta, true, ai_color, current_hash);
+                    if(score < beta && score > alpha)
+                        score = alphaBetaSearch(board, depth - 1, alpha, beta, true, ai_color, current_hash);
+                }
             }
-        }
+        }   
 
         // 撤销落子
         board->pieceColor[row][col] = BLANK;

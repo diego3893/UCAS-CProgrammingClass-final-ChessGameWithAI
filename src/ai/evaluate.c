@@ -20,7 +20,7 @@ const int POSITION_WEIGHT[BOARD_SIZE+1][BOARD_SIZE+1] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
-const int SHAPE_SCORES[] = { 10, 100, 1000, 10000, 100000, -100000 };
+const int SHAPE_SCORES[] = { 10, 100, 1000, 10000, 100000, -10000000 };
 
 int evaluateFullBoard(const Board* board, Player ai_player){
     int total_score = 0;
