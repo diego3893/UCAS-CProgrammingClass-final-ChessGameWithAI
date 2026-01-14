@@ -14,10 +14,14 @@ void initZobrist(){
         }
     }
     initialized = 1;
+    return;
 }
 
 void clearTT(){
-    for(int i=0; i<TT_SIZE; ++i) transposition_table[i].hash = 0;
+    for(int i=0; i<TT_SIZE; ++i){
+        transposition_table[i].hash = 0;
+    }
+    return;
 }
 
 ULL hashBoard(const Board* board){
@@ -33,12 +37,12 @@ ULL hashBoard(const Board* board){
 void updateHash(ULL* hash, int row, int col, int old_color, int new_color){
     *hash ^= zobrist_table[row][col][old_color];
     *hash ^= zobrist_table[row][col][new_color];
+    return;
 }
 
 void storeTT(ULL hash, int score, int depth, int type, int r, int c){
-    int idx = hash % TT_PRIME;
-    // 深度优先覆盖策略：保留搜索深度更深的信息
-    if (transposition_table[idx].hash == 0 || transposition_table[idx].depth <= depth) {
+    int idx = hash%TT_PRIME;
+    if (transposition_table[idx].hash==0 || transposition_table[idx].depth<=depth) {
         transposition_table[idx].hash = hash;
         transposition_table[idx].score = score;
         transposition_table[idx].depth = depth;
@@ -46,11 +50,14 @@ void storeTT(ULL hash, int score, int depth, int type, int r, int c){
         transposition_table[idx].best_row = r;
         transposition_table[idx].best_col = c;
     }
+    return;
 }
 
 bool retrieveTT(ULL hash, int* score, int* depth, int* type, int* r, int* c){
     int idx = hash % TT_PRIME;
-    if(transposition_table[idx].hash != hash) return false;
+    if(transposition_table[idx].hash != hash){
+        return false;
+    }
     *score = transposition_table[idx].score;
     *depth = transposition_table[idx].depth;
     *type = transposition_table[idx].type;

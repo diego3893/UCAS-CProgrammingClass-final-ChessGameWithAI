@@ -56,10 +56,10 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
 void initAI();
 
 /**
- * @brief 邻域搜索、排序优先搜索（降序）生成函数
+ * @brief 邻域搜索生成函数
  * 
  * @param board 棋盘
- * @param possible_moves 保存排序后搜索目标的数组
+ * @param possible_moves 搜索目标的数组
  * @param ai_color AI颜色
  * @param is_max_player 当前搜索层数是否是max层
  * @return int 邻域搜索目标的个数
