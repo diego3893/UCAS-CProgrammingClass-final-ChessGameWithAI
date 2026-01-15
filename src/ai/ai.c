@@ -72,10 +72,10 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
             if(tt_type == EXACT){
                 return tt_score;
             }
-            if(tt_type == LOWER && tt_score >= beta){
+            if(tt_type==LOWER && tt_score>=beta){
                 return tt_score;
             }
-            if(tt_type == UPPER && tt_score <= alpha){
+            if(tt_type==UPPER && tt_score<=alpha){
                 return tt_score;
             }
         }
@@ -208,9 +208,7 @@ int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int 
                 continue;
             }
             updateHash(&board_hash, row, col, BLANK, ai_color);
-
             int score = alphaBetaSearch(board, current_depth-1, INT_MIN+100, INT_MAX-100, false, ai_color, board_hash);
-            
             board->pieceColor[row][col] = BLANK; 
             board->pieceTotal--;
             updateHash(&board_hash, row, col, ai_color, BLANK); 
@@ -221,7 +219,6 @@ int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int 
                     }
                 }
             }
-
             if(score > current_best_score){
                 current_best_score = score;
                 current_best_r = row; current_best_c = col;
@@ -247,7 +244,6 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
         *row = 8; *col = 8;
         return (double)(GetTickCount()-st_ms);
     }
-    
     PossibleMoves pm[BOARD_SIZE*BOARD_SIZE+1];
     int count = generatePossibleMoves(board, pm, ai_color, true);
     for(int i=0; i<count; ++i){
@@ -256,9 +252,7 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
             return (double)(GetTickCount()-st_ms);
         }
     }
-
     int tg_depth = max(ST_SEARCH_DEPTH, TG_SEARCH_DEPTH-floor(timeout_cnt/3.0));
     iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, tg_depth, row, col);
-    
     return (double)(GetTickCount()-st_ms);
 }

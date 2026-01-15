@@ -79,6 +79,15 @@ int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Pi
  */
 int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c);
 
+/**
+ * @brief 走法综合排序
+ * 
+ * @param moves 可能的走法
+ * @param count 走法的总数
+ * @param depth 当前深度
+ * @param tt_r 置换表记录的最好走法行号
+ * @param tt_c 置换表记录的最好走法列号
+ */
 void sortMovesHeuristic(PossibleMoves moves[], int count, int depth, int tt_r, int tt_c);
 
 #endif
