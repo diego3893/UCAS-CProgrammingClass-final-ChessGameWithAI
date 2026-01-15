@@ -246,12 +246,24 @@ double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
     }
     PossibleMoves pm[BOARD_SIZE*BOARD_SIZE+1];
     int count = generatePossibleMoves(board, pm, ai_color, true);
+    int Index=0;
+    while(pm[Index].score >= 100000){
+        int shape_cnt[CHESS_SHAPE_CNT] = {0};
+        checkChessShape(board, pm[Index].row, pm[Index].col, shape_cnt, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
+        if(shape_cnt[FIVE_IN_ROW] > 0){
+            *row = pm[Index].row; *col = pm[Index].col;
+            return (double)(GetTickCount()-st_ms);
+        }
+        Index++;
+    }
+
     for(int i=0; i<count; ++i){
         if(pm[i].score >= 100000){
             *row = pm[i].row; *col = pm[i].col;
             return (double)(GetTickCount()-st_ms);
         }
     }
+    
     int tg_depth = max(ST_SEARCH_DEPTH, TG_SEARCH_DEPTH-floor(timeout_cnt/3.0));
     iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, tg_depth, row, col);
     return (double)(GetTickCount()-st_ms);

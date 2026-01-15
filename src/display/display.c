@@ -117,7 +117,7 @@ void getInput(char s[], int max_len){
     return;
 }
 
-void showGameOver(GameStatus game_status){
+void showGameOver(GameStatus game_status, double AI_time){
     printf("\n=================================================\n");
     printf("                    游戏结束                     \n");
     printf("=================================================\n\n");
@@ -132,6 +132,9 @@ void showGameOver(GameStatus game_status){
     }
     if(game_status == DRAW){
         printf("                 棋盘已满，和棋！                    \n\n");
+    }
+    if(AI_time != 0){
+        printf("AI平均用时：%.3fs\n", AI_time);
     }
     //system("pause");
     return;

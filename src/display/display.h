@@ -75,7 +75,7 @@ void showWelcomeMsg();
  * 
  * @param game_status 游戏结果
  */
-void showGameOver(GameStatus game_status);
+void showGameOver(GameStatus game_status, double AI_time);
 
 /**
  * @brief 读取用户输入的坐标

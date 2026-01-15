@@ -13,6 +13,7 @@ char restart = 'n';
 char input[4];
 int row, col;
 int trans_flag, drop_flag;
+double AI_time = 0.0;
 
 int main(){
     SetConsoleOutputCP(65001);
@@ -160,6 +161,7 @@ int main(){
                 }
                 showBoard(&board);
                 game_status = judgeStatus(&board, row, col, current_player);
+                AI_time = time_use_avr/1000;
             }
         }
         if(game_mode == P2AI_PLAYER_WHITE){
@@ -230,9 +232,10 @@ int main(){
                 }
                 showBoard(&board);
                 game_status = judgeStatus(&board, row, col, current_player);
+                AI_time = time_use_avr/1000;
             }
         }
-        showGameOver(game_status);
+        showGameOver(game_status, AI_time);
         printf("要重新开始游戏吗？(y/n)：");
         scanf("%c", &restart);
         getchar();
