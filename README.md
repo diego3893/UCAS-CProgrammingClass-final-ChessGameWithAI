@@ -15,6 +15,8 @@
   - [x] 邻域搜索
   - [x] 迭代加深
   - [x] 置换表
+  - [x] PVS (主要变例搜索)
+  - [x] 杀手启发式搜索
 - [x] 修改文件结构，添加AI模块
 - [x] 适配三种游戏模式
 - [x] 修改README
@@ -82,50 +84,51 @@ mingw32-make
 ## 功能列表
 - main.c
   - 棋盘显示
+  - 三种游戏模式
   - 玩家输入坐标落子并判断落子位置是否合法，不合法要求重新输入
   - 自动判定胜负（五连、禁手、平局）
-- board.c
+- board.h
   - `void boardInit(Board* board)`：棋盘初始化
-  - `int dropPiece(Board* board, int row, int col, Piece piece_color)`：落子操作，返回落子结果（1：成功；0：位置被占用；-1：超出范围）
-  - `Piece getPiece(const Board* board, int row, int col)`：获取指定坐标棋子的颜色
-  - `bool isEmpty(const Board* board, int row, int col)`：判断指定坐标点是否为空（空返回true，非空或坐标不合法返回false）
-  - `bool transInput2Coord(const char s[], int* row, int* col)`：将字符坐标输入转换为整数对(row, col)，确保范围在(1,1)~(15,15)，返回转换是否成功
-  - `bool boardIsFull(const Board* board)`：判断棋盘是否下满（用于判断和棋，满返回true，否则返回false）
-- display.c
+  - `int dropPiece(Board* board, int row, int col, Piece piece_color)`：落子，包括棋子总数、最新落子、颜色修改和想、邻域标识修改
+  - `Piece getPiece(const Board* board, int row, int col)`：获取棋子的颜色（调用前需要判断坐标合法性）
+  - `bool isEmpty(const Board* board, int row, int col)`：判断坐标点是否为空
+  - `bool transInput2Coord(const char s[], int* row, int* col)`：将字符坐标输入转换为有序整数对(row, col)，同时确保范围在(1,1)~(15,15)
+  - `bool boardIsFull(const Board* board)`：判断棋盘是否下满，判断和棋
+
+- display.h
   - `void showBoard(const Board* board)`：显示棋盘
-  - `void showInputPrompt(Player current_player)`：显示用户输入的提示语（根据当前玩家提示）
-  - `void showWelcomeMsg()`：显示开始游戏时的提示语（包含输入方式、游戏规则等）
-  - `void showGameOver(GameStatus game_status)`：显示游戏结束时的提示语（根据游戏结果提示胜负、禁手或和棋）
-  - `void getInput(char s[], int max_len)`：读取用户输入的坐标，存储到字符串中
-- rule.c
-  - `GameStatus judgeStatus(const Board* board, int row, int col, Player current_player)`：判断游戏状态（返回继续游戏、黑/白胜、禁手或平局）
-  - `void checkChessShape(const Board* board, int row, int col, int chess_shape_cnt[], Player current_player)`：统计当前棋子参与构成的棋型，结果存储在棋型统计数组中
-  - `int checkLiveThree(const Board* board, int row, int col)`：统计活三个数（包括跳活三）
-  - `int checkLiveFour(const Board* board, int row, int col)`：统计活四个数 
-  - `int checkBreakthroughFour(const Board* board, int row, int col)`：统计冲四个数
-  - `int checkLongChain(const Board* board, int row, int col)`：统计长连个数
-  - `int checkFiveInRow(const Board* board, int row, int col, Player current_player)`：统计五连个数
-  - `bool isForbiddenMove(const int chess_shape_cnt[])`：根据棋型统计数组判断是否为禁手（是返回true，否返回false）
-  - `bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, DeltaPair dir)`：检查特定方向上连成的棋型，判断是否为活三、活四或五连（是返回true，否返回false）
-  - `bool isForbiddenPosition(const Board* board, int row, int col)`：模拟落子，判断空白位置是否为禁手点位
-  - `int checkLiveTwo(const Board* board, int row, int col, Player current_player)`：统计活二个数
-- ai.c
+  - `void showInputPrompt(Player current_player)`：用户输入的提示语
+  - `void showWelcomeMsg()`：开始游戏时的提示语
+  - `void showGameOver(GameStatus game_status)`：游戏结束时的提示语
+  - `void getInput(char s[], int max_len)`：读取用户输入的坐标
+
+- ai.h
   - `double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col)`：AI决策函数，返回最佳落子位置
   - `int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_player, Piece ai_color, ULL current_hash)`：极大极小搜索算法带alpha-beta剪枝
   - `void initAI()`：初始化随机种子，初始化置换表，获取搜索起始时间
-  - `int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece ai_color, bool is_max_player)`：邻域搜索、排序优先搜索（降序）生成函数
+  - `int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece ai_color, bool is_max_player)`：邻域搜索生成函数
   - `int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c)`：迭代加深搜索
-- evaluate.c
+  - `void sortMovesHeuristic(PossibleMoves moves[], int count, int depth, int tt_r, int tt_c)`：走法综合排序
+
+- tt.h
+  - `void initZobrist()`：初始化哈希计算的随机数
+  - `void clearTT()`：清空置换表
+  - `ULL hashBoard(const Board* board)`：计算整个棋盘哈希
+  - `void updateHash(ULL* hash, int row, int col, int old_color, int new_color)`：增量更新哈希
+  - `void storeTT(ULL hash, int score, int depth, int type, int r, int c)`：保存哈希
+  - `bool retrieveTT(ULL hash, int* score, int* depth, int* type, int* r, int* c)`：哈希查找
+
+- evaluate.h
   - `int evaluateFullBoard(const Board* board, Player ai_player)`：棋局评估函数
   - `int evaluatePostion(const Board* board, int row, int col, Piece ai_color, Piece current_color)`：对特定位置的评估函数
   - `int cmp(const void* a, const void* b)`：用于qsort的结构体降序比较
-- tt.c
-  - `void initZobrist()`：初始化Zobrist随机数
-  - `void clearTT()`：清空置换表哈希值
-  - `ULL hashBoard(const Board* board)`：计算整个棋盘的哈希值
-  - `void updateHash(ULL* hash, int row, int col, int old_color, int new_color)`：异或更新哈希值
-  - `void storeTT(ULL hash, int score, int depth, int type)`：保存置换表
-  - `bool retrieveTT(ULL hash, int* score, int* depth, int* type)`：读取置换表，查询数据
+
+- rule.h
+  - `GameStatus judgeStatus(const Board* board, int row, int col, Player current_player)`：判断游戏状态
+  - `void checkChessShape(const Board* board, int row, int col, int chess_shape_cnt[], Player current_player)`：统计当前棋子参与构成的棋型
+  - `bool isForbiddenMove(const int chess_shape_cnt[])`：判断是否为禁手
+  - `bool checkPieceInRowWithDir(const Board* board, int row, int col, int num, Pair dir, Player current_player)`：检查某个特定方向上连成的棋型，判断是否为活三、活四或五连
+  - `bool isForbiddenPosition(const Board* board, int row, int col)`：模拟落子，判断空白位置是否为禁手点位
 
 ## 已知问题
 

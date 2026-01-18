@@ -1,10 +1,17 @@
 #include "ai.h"
-// 修改：迭代加深超时后减小深度
 
 DWORD st_ms, now_ms;
 bool deepening_stop;
 int timeout_cnt = 0;
-bool reset_neighborhood_size = false;
+
+int killer_moves[TG_SEARCH_DEPTH+1][2][2];
+int history_table[BOARD_SIZE+1][BOARD_SIZE+1];
+
+void clearHeuristics(){
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_table, 0, sizeof(history_table));
+    return;
+}
 
 void initAI(){
     static int initialized = 0;
@@ -15,287 +22,249 @@ void initAI(){
         initialized = 1;
     }
     st_ms = GetTickCount();
+    return;
 }
 
 int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Piece ai_color, bool is_max_player){
     int Index = 0;
+    Piece current_color = is_max_player ? ai_color : (ai_color == BLACK ? WHITE : BLACK);
+    
     for(int i=1; i<=BOARD_SIZE; ++i){
         for(int j=1; j<=BOARD_SIZE; ++j){
-            if(board->pieceColor[i][j] == BLANK){
-                if(board->possibleMove[i][j] > 0){
-                    possible_moves[Index].row = i;
-                    possible_moves[Index].col = j;
-                    possible_moves[Index++].score = evaluatePostion(board, i, j, ai_color, is_max_player?ai_color:(ai_color==BLACK?WHITE:BLACK));
-                }else{
+            if(board->pieceColor[i][j] == BLANK && board->possibleMove[i][j] > 0){
+                if(current_color==BLACK && isForbiddenPosition(board, i, j)){
                     continue;
                 }
-            }else{
-                continue;
+                possible_moves[Index].row = i;
+                possible_moves[Index].col = j;
+                possible_moves[Index++].score = evaluatePostion(board, i, j, ai_color, current_color);
             }
         }
     }
-    // if(is_max_player){
-    //     qsort(possible_moves, Index, sizeof(PossibleMoves), cmp_max);
-    // }else{
-    //     qsort(possible_moves, Index, sizeof(PossibleMoves), cmp_max);
-    // }
-    qsort(possible_moves, Index, sizeof(PossibleMoves), cmp);
     return Index;
+}
+
+void sortMovesHeuristic(PossibleMoves moves[], int count, int depth, int tt_r, int tt_c){
+    for(int i=0; i<count; ++i){
+        if(moves[i].row==tt_r && moves[i].col==tt_c){
+            moves[i].score += 1000000;
+        }
+        else if((moves[i].row==killer_moves[depth][0][0] && moves[i].col==killer_moves[depth][0][1]) ||
+                 (moves[i].row==killer_moves[depth][1][0] && moves[i].col==killer_moves[depth][1][1])){
+            moves[i].score += 500000;
+        }else{
+            moves[i].score += history_table[moves[i].row][moves[i].col];
+        } 
+    }
+    qsort(moves, count, sizeof(PossibleMoves), cmp);
+    return;
 }
 
 int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_player, Piece ai_color, ULL current_hash){
     if((double)(GetTickCount()-st_ms) >= MAX_TIME){
         deepening_stop = true;
-        return is_max_player?INT_MIN:INT_MAX;
+        return is_max_player ? INT_MIN+100 : INT_MAX-100;
     }
-    int tt_score, tt_depth, tt_type;
-    if(retrieveTT(current_hash, &tt_score, &tt_depth, &tt_type)){
+
+    int tt_score, tt_depth, tt_type, tt_r = -1, tt_c = -1;
+    if(retrieveTT(current_hash, &tt_score, &tt_depth, &tt_type, &tt_r, &tt_c)){
         if(tt_depth >= depth){
             if(tt_type == EXACT){
                 return tt_score;
             }
-            if(tt_type == LOWER && tt_score >= beta){
+            if(tt_type==LOWER && tt_score>=beta){
                 return tt_score;
             }
-            if(tt_type == UPPER && tt_score <= alpha){
+            if(tt_type==UPPER && tt_score<=alpha){
                 return tt_score;
             }
         }
     }
 
     if(depth == 0){
-        int score = evaluateFullBoard(board,(ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
-        storeTT(current_hash, score, 0, EXACT);
-        return score;
+        return evaluateFullBoard(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
     }
     
+    PossibleMoves moves[BOARD_SIZE*BOARD_SIZE+1];
+    int move_cnt = generatePossibleMoves(board, moves, ai_color, is_max_player);
+    if(move_cnt == 0){
+        return evaluateFullBoard(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
+    }
+    
+    sortMovesHeuristic(moves, move_cnt, depth, tt_r, tt_c);
+
+    int best_score = is_max_player?INT_MIN:INT_MAX;
+    int best_r = -1, best_c = -1;
     Piece current_color = is_max_player?ai_color:(ai_color==BLACK?WHITE:BLACK);
-    int row, col;
-    int best_score;
-    int tt_entry_type = UPPER;
+    bool found_pv = false;
 
-    if(is_max_player){
-        best_score = INT_MIN;
-        PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
-        int move_cnt = generatePossibleMoves(board, possible_moves, ai_color, is_max_player);
-        for(int i=0; i<move_cnt; ++i){
-            if(possible_moves[i].score < 0){
-                continue;
-            }
-            row = possible_moves[i].row;
-            col = possible_moves[i].col;       
-            if(dropPiece(board, row, col, current_color) != 1){
-                continue;
-            }
+    for(int i=0; i<move_cnt; ++i){
+        int row = moves[i].row;
+        int col = moves[i].col;
+        if(dropPiece(board, row, col, current_color) != 1){
+            continue;
+        }
+        updateHash(&current_hash, row, col, BLANK, current_color);
 
-            updateHash(&current_hash, row, col, BLANK, current_color);
-            
-            int score = alphaBetaSearch(board, depth - 1, alpha, beta, false, ai_color, current_hash);
-            
-            board->pieceColor[row][col] = BLANK;
-            board->pieceTotal--;
-            updateHash(&current_hash, row, col, current_color, BLANK);
-            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
-                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
-                    if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
-                        board->possibleMove[row+dx][col+dy] -= 1;
+        int score;
+        GameStatus status = judgeStatus(board, row, col, is_max_player ? 
+                            ((ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE) : 
+                            ((ai_color==BLACK)?PLAYER_WHITE:PLAYER_BLACK));
+        if(status == FORBIDDEN_MOVE){
+            score = is_max_player?(INT_MIN+1000+depth):(INT_MAX-1000-depth);
+        }else if(status==BLACK_WIN || status==WHITE_WIN){
+            score = is_max_player?(INT_MAX-1000-depth):(INT_MIN+1000+depth);
+        }else if(depth==0 || status==DRAW){
+            score = evaluateFullBoard(board, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
+        }else{
+            if(!found_pv){
+                score = alphaBetaSearch(board, depth-1, alpha, beta, !is_max_player, ai_color, current_hash);
+            }else{
+                if(is_max_player){
+                    score = alphaBetaSearch(board, depth-1, alpha, alpha+1, false, ai_color, current_hash);
+                    if(score>alpha && score<beta){
+                        score = alphaBetaSearch(board, depth-1, alpha, beta, false, ai_color, current_hash);
+                    }
+                }else{
+                    score = alphaBetaSearch(board, depth-1, beta-1, beta, true, ai_color, current_hash);
+                    if(score<beta && score>alpha){
+                        score = alphaBetaSearch(board, depth-1, alpha, beta, true, ai_color, current_hash);
                     }
                 }
             }
-            
+        }   
+        board->pieceColor[row][col] = BLANK;
+        board->pieceTotal--;
+        updateHash(&current_hash, row, col, current_color, BLANK);
+        for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
+            for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
+                if(1<=(row+dx) && (row+dx)<=BOARD_SIZE && 1<=(col+dy) && (col+dy)<=BOARD_SIZE){
+                    board->possibleMove[row+dx][col+dy] -= 1;
+                }
+            }
+        }
+        if(is_max_player){
             if(score > best_score){
                 best_score = score;
+                best_r = row; 
+                best_c = col;
             }
             if(best_score > alpha){
                 alpha = best_score;
-                tt_entry_type = EXACT;
+                found_pv = true;
+                history_table[row][col] += depth * depth;
             }
-            if(alpha >= beta){
-                tt_entry_type = LOWER;
-                break;
-            }
-        }
-    }else{
-        best_score = INT_MAX;
-        PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
-        int move_cnt = generatePossibleMoves(board, possible_moves, ai_color, is_max_player);
-        for(int i=0; i<move_cnt; ++i){
-            if(possible_moves[i].score < 0){
-                continue;
-            }
-            row = possible_moves[i].row;
-            col = possible_moves[i].col;
-            if(dropPiece(board, row, col, current_color) != 1){
-                continue;
-            }
-            
-            updateHash(&current_hash, row, col, BLANK, current_color);
-            
-            int score = alphaBetaSearch(board, depth - 1, alpha, beta, true, ai_color, current_hash);
-            
-            board->pieceColor[row][col] = BLANK;
-            board->pieceTotal--;
-            updateHash(&current_hash, row, col, current_color, BLANK);
-            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
-                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
-                    if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
-                        board->possibleMove[row+dx][col+dy] -= 1;
-                    }
-                }
-            }
-            
+        }else{
             if(score < best_score){
                 best_score = score;
+                best_r = row; best_c = col;
             }
             if(best_score < beta){
                 beta = best_score;
-                tt_entry_type = EXACT;
+                found_pv = true;
             }
-            if(alpha >= beta){
-                tt_entry_type = UPPER;
-                break;
-            }
+        }
+        if(alpha >= beta){
+            killer_moves[depth][1][0] = killer_moves[depth][0][0];
+            killer_moves[depth][1][1] = killer_moves[depth][0][1];
+            killer_moves[depth][0][0] = row;
+            killer_moves[depth][0][1] = col;
+            storeTT(current_hash, best_score, depth, is_max_player ? LOWER : UPPER, row, col);
+            return best_score;
         }
     }
 
-    storeTT(current_hash, best_score, depth, tt_entry_type);
+    storeTT(current_hash, best_score, depth, EXACT, best_r, best_c);
     return best_score;
 }
 
 int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c){
     int final_best_score = INT_MIN;
     deepening_stop = false;
-    *best_r = -1;
-    *best_c = -1;
-    
+    clearHeuristics();
+
     ULL board_hash = hashBoard(board);
 
-    for(int current_depth=start_depth; current_depth<=target_depth; current_depth+=2){
+    for(int current_depth=start_depth; current_depth<=target_depth; current_depth+=1){
         if(GetTickCount()-st_ms > MAX_TIME){
-            printf("迭代加深超时，终止于深度：%d\n", current_depth-2);
+            timeout_cnt++;
             break;
         }
         
-        int current_best_score = INT_MIN;
+        int tt_r = -1, tt_c = -1, tt_s, tt_d, tt_t;
+        retrieveTT(board_hash, &tt_s, &tt_d, &tt_t, &tt_r, &tt_c);
+
+        PossibleMoves moves[BOARD_SIZE*BOARD_SIZE+1];
+        int move_cnt = generatePossibleMoves(board, moves, ai_color, true);
+        sortMovesHeuristic(moves, move_cnt, current_depth, tt_r, tt_c);
+
         int current_best_r = -1, current_best_c = -1;
-        PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
-        int move_cnt = generatePossibleMoves(board, possible_moves, ai_color, true);
-        
+        int current_best_score = INT_MIN;
+
         for(int i=0; i<move_cnt; ++i){
-            if(possible_moves[i].score < 0){
-                continue;
-            }
-            int row = possible_moves[i].row;
-            int col = possible_moves[i].col;
+            int row = moves[i].row;
+            int col = moves[i].col;
             if(dropPiece(board, row, col, ai_color) != 1){
                 continue;
             }
-            
             updateHash(&board_hash, row, col, BLANK, ai_color);
-            int score = alphaBetaSearch(board, current_depth - 1, INT_MIN, INT_MAX, false, ai_color, board_hash);
-            
-            board->pieceColor[row][col] = BLANK;
+            int score = alphaBetaSearch(board, current_depth-1, INT_MIN+100, INT_MAX-100, false, ai_color, board_hash);
+            board->pieceColor[row][col] = BLANK; 
             board->pieceTotal--;
             updateHash(&board_hash, row, col, ai_color, BLANK); 
-            for(int dx=-neighborhood_size; dx<=neighborhood_size; ++dx){
-                for(int dy=-neighborhood_size; dy<=neighborhood_size; ++dy){
+            for(int dx=-NEIGHBORHOOD_SIZE; dx<=NEIGHBORHOOD_SIZE; ++dx){
+                for(int dy=-NEIGHBORHOOD_SIZE; dy<=NEIGHBORHOOD_SIZE; ++dy){
                     if(1<=(row+dx) &&(row+dx)<=BOARD_SIZE && 1<=(col+dy) &&(col+dy)<=BOARD_SIZE){
                         board->possibleMove[row+dx][col+dy] -= 1;
                     }
                 }
             }
-            
             if(score > current_best_score){
                 current_best_score = score;
-                current_best_r = row;
-                current_best_c = col;
+                current_best_r = row; current_best_c = col;
             }
         }
         if(deepening_stop){
-            printf("迭代加深超时，终止于深度：%d\n", current_depth-2);
             timeout_cnt++;
             break;
         }
         
-        if(current_best_score>final_best_score && current_best_r!=-1 && current_best_c!=-1){
-            final_best_score = current_best_score;
-            *best_r = current_best_r;
-            *best_c = current_best_c;
-        }
-        
-        printf("迭代加深：深度%d 最佳分数=%d 位置=%c%d\n", current_depth, final_best_score, (char)(*best_c+'A'-1), *best_r);
+        *best_r = current_best_r; 
+        *best_c = current_best_c;
+        final_best_score = current_best_score;
+        printf("迭代加深：深度%d 分数=%d 位置=%c%d\n", current_depth, final_best_score, (char)(*best_c+'A'-1), *best_r);
     }
-    
     return final_best_score;
 }
 
 double aiMakeDecision(const Board* board, Piece ai_color, int* row, int* col){
     initAI();
-    
     Board board_copy = *board;
-    
     if(board_copy.pieceTotal==0 && ai_color==BLACK){
-        *row = 8;
-        *col = 8;
-        now_ms = GetTickCount();
-        double time_use =(double)(now_ms-st_ms);
-        return time_use;
+        *row = 8; *col = 8;
+        return (double)(GetTickCount()-st_ms);
     }
-    
-    PossibleMoves possible_moves[BOARD_SIZE*BOARD_SIZE+1];
-    int move_cnt = generatePossibleMoves(board, possible_moves, ai_color, true);
-
-    for(int i=0; i<move_cnt; ++i){
-        now_ms = GetTickCount();
-        if((double)(now_ms-st_ms) > MAX_TIME){
-            break;
+    PossibleMoves pm[BOARD_SIZE*BOARD_SIZE+1];
+    int count = generatePossibleMoves(board, pm, ai_color, true);
+    int Index=0;
+    while(pm[Index].score >= 100000){
+        int shape_cnt[CHESS_SHAPE_CNT] = {0};
+        checkChessShape(board, pm[Index].row, pm[Index].col, shape_cnt, (ai_color==BLACK)?PLAYER_BLACK:PLAYER_WHITE);
+        if(shape_cnt[FIVE_IN_ROW] > 0){
+            *row = pm[Index].row; *col = pm[Index].col;
+            return (double)(GetTickCount()-st_ms);
         }
-        if(possible_moves[i].score >= 100000){
-            if(ai_color == BLACK){
-                int shape_cnt[CHESS_SHAPE_CNT] = {0};
-                checkChessShape(board, possible_moves[i].row, possible_moves[i].col, shape_cnt, PLAYER_BLACK);
-                if(!isForbiddenMove(shape_cnt)){
-                    *row = possible_moves[i].row;
-                    *col = possible_moves[i].col;
-                    now_ms = GetTickCount();
-                    double time_use =(double)(now_ms-st_ms);
-                    return time_use;
-                }
-            }else{
-                *row = possible_moves[i].row;
-                *col = possible_moves[i].col;
-                now_ms = GetTickCount();
-                double time_use =(double)(now_ms-st_ms);
-                return time_use;
-            }
-        }
+        Index++;
     }
 
-    int tg_search_depth = max(ST_SEARCH_DEPTH, TG_SEARCH_DEPTH-2*floor(timeout_cnt/3.0));
-    if(tg_search_depth > ST_SEARCH_DEPTH){
-        neighborhood_size = NEIGHBORHOOD_SIZE;
-    }else if(tg_search_depth == ST_SEARCH_DEPTH){
-        neighborhood_size = NEIGHBORHOOD_SIZE+1;
-    }
-    if(timeout_cnt>6 || reset_neighborhood_size){
-        neighborhood_size = NEIGHBORHOOD_SIZE;
-    }
-    int score = iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, tg_search_depth, row, col);
-    
-    now_ms = GetTickCount();
-    double time_use =(double)(now_ms-st_ms);
-    if(*row != -1 && *col != -1){
-        printf("AI迭代加深搜索完成，最终落子分数为：%d\n", score);
-    }else{
-        printf("AI未找到有效落子，在已知合法落子中挑选排序最高的\n");
-        for(int i = 0; i < move_cnt; i++){
-            *row = possible_moves[i].row;
-            *col = possible_moves[i].col;
-            break;
+    for(int i=0; i<count; ++i){
+        if(pm[i].score >= 100000){
+            *row = pm[i].row; *col = pm[i].col;
+            return (double)(GetTickCount()-st_ms);
         }
     }
-    if(tg_search_depth==ST_SEARCH_DEPTH && time_use>=MAX_TIME-1000){
-        reset_neighborhood_size = true;
-    }
-    return time_use;
+    
+    int tg_depth = max(ST_SEARCH_DEPTH, TG_SEARCH_DEPTH-floor(timeout_cnt/3.0));
+    iterativeDeepeningSearch(&board_copy, ai_color, ST_SEARCH_DEPTH, tg_depth, row, col);
+    return (double)(GetTickCount()-st_ms);
 }

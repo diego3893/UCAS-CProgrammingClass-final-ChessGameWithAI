@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 #define ST_SEARCH_DEPTH 2 // 起始搜索深度
-#define TG_SEARCH_DEPTH 6 // 终止搜索深度
+#define TG_SEARCH_DEPTH 7 // 终止搜索深度
 #define MAX_TIME 15000 // 最大搜索时间
 
 /**
@@ -56,10 +56,10 @@ int alphaBetaSearch(Board* board, int depth, int alpha, int beta, bool is_max_pl
 void initAI();
 
 /**
- * @brief 邻域搜索、排序优先搜索（降序）生成函数
+ * @brief 邻域搜索生成函数
  * 
  * @param board 棋盘
- * @param possible_moves 保存排序后搜索目标的数组
+ * @param possible_moves 搜索目标的数组
  * @param ai_color AI颜色
  * @param is_max_player 当前搜索层数是否是max层
  * @return int 邻域搜索目标的个数
@@ -78,5 +78,16 @@ int generatePossibleMoves(const Board* board, PossibleMoves possible_moves[], Pi
  * @return int 最优分数
  */
 int iterativeDeepeningSearch(Board* board, Piece ai_color, int start_depth, int target_depth, int* best_r, int* best_c);
+
+/**
+ * @brief 走法综合排序
+ * 
+ * @param moves 可能的走法
+ * @param count 走法的总数
+ * @param depth 当前深度
+ * @param tt_r 置换表记录的最好走法行号
+ * @param tt_c 置换表记录的最好走法列号
+ */
+void sortMovesHeuristic(PossibleMoves moves[], int count, int depth, int tt_r, int tt_c);
 
 #endif

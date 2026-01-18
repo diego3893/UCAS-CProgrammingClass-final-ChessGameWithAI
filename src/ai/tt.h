@@ -3,9 +3,9 @@
  * @author diego3893 (diegozcx@foxmail.com)
  * @brief 置换表相关头文件
  * @version 1.0
- * @date 2026-01-08
+ * @date 2025-12-28
  * 
- * @copyright Copyright (c) 2026
+ * @copyright Copyright (c) 2025
  * 
  */
 #ifndef TT_H
@@ -13,73 +13,80 @@
 
 #include "../board/board.h"
 #include <stdlib.h>
+#include <stdbool.h>
 
-#define TT_PRIME 2097149 // 2^21左右的大质数，取模
-#define TT_SIZE TT_PRIME // 置换表大小
+#define TT_PRIME 4194301
+#define TT_SIZE TT_PRIME 
 #define ULL unsigned long long
 
 /**
- * @brief 置换表结构体，保存棋盘数据
+ * @brief 置换表结构体
  * 
  */
-typedef struct {
+typedef struct{
     ULL hash;
     int score;
     int depth;
-    enum { EXACT, LOWER, UPPER } type;
-} TT_Entry;
+    int best_row;
+    int best_col;
+    enum {EXACT, LOWER, UPPER} type;
+}TT_Entry;
 
 /**
- * @brief 初始化Zobrist随机数
+ * @brief 初始化哈希计算的随机数
  * 
  */
 void initZobrist();
 
 /**
- * @brief 清空置换表哈希值
+ * @brief 清空置换表
  * 
  */
 void clearTT();
 
 /**
- * @brief 计算整个棋盘的哈希值
+ * @brief 计算整个棋盘哈希
  * 
  * @param board 棋盘
- * @return ULL 棋盘哈希值
+ * @return ULL 哈希值
  */
 ULL hashBoard(const Board* board);
 
 /**
- * @brief 异或更新哈希值
+ * @brief 增量更新哈希
  * 
  * @param hash 哈希值
- * @param row 行坐标
- * @param col 列坐标
- * @param old_color 更改前该位置的棋子颜色
- * @param new_color 更改后该位置的棋子颜色
+ * @param row 行号
+ * @param col 列号
+ * @param old_color 更改前的颜色
+ * @param new_color 更改后的颜色
  */
 void updateHash(ULL* hash, int row, int col, int old_color, int new_color);
 
 /**
- * @brief 保存置换表
+ * @brief 保存哈希
  * 
  * @param hash 哈希值
  * @param score 分数
  * @param depth 深度
- * @param type 保存类型
+ * @param type 类型
+ * @param r 行
+ * @param c 列
  */
-void storeTT(ULL hash, int score, int depth, int type);
+void storeTT(ULL hash, int score, int depth, int type, int r, int c);
 
 /**
- * @brief 读取置换表，查询数据
+ * @brief 哈希查找
  * 
- * @param hash 哈希值
+ * @param hash 哈希
  * @param score 分数
  * @param depth 深度
- * @param type 保存类型
- * @return true 查询成功
- * @return false 查询失败
+ * @param type 类型
+ * @param r 行
+ * @param c 列
+ * @return true 查找成功
+ * @return false 查找失败
  */
-bool retrieveTT(ULL hash, int* score, int* depth, int* type);
+bool retrieveTT(ULL hash, int* score, int* depth, int* type, int* r, int* c);
 
 #endif

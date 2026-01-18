@@ -22,7 +22,6 @@
 
 #define NEIGHBORHOOD_SIZE 1 // 邻域标记范围
 
-extern int neighborhood_size;
 
 /**
  * @brief 棋子，枚举类型，标识当前棋子的状态是黑/白/空白
@@ -46,12 +45,20 @@ typedef struct{
     int pieceTotal;
 }Board;
 
+/**
+ * @brief 游戏类型
+ * 
+ */
 typedef enum{
     P2P,
     P2AI_PLAYER_BLACK,
     P2AI_PLAYER_WHITE
 }GameMode;
 
+/**
+ * @brief 邻域搜索保存
+ * 
+ */
 typedef struct{
     int row;
     int col;
@@ -66,7 +73,7 @@ typedef struct{
 void boardInit(Board* board);
 
 /**
- * @brief 
+ * @brief 落子，包括棋子总数、最新落子、颜色修改和想、邻域标识修改
  * 
  * @param board 棋盘
  * @param row 落子行
